@@ -1,0 +1,14 @@
+设备型号：,7T851_Q41P
+系统版本号：,REL-DB3.0-2022.09.29-522878_ini_01.01
+芯片型号：,mt9638
+应用包名, 场景, 启动/响应时间(s), 标准值 ,时间戳
+com.tianci.movieplatform , 主页home冷启动 , 6.08 , None, 2022-12-21-17-37-57
+com.tianci.movieplatform, 主页home冷启动 , 6.34 , None , 2022-12-21-17-38-31
+com.tianci.movieplatform, 打开新闻头条 , 1.73 , None , 2022-12-21-17-39-04
+com.tianci.movieplatform, 打开新闻头条 , 1.82 , None , 2022-12-21-17-39-38
+com.tianci.movieplatform, 打开历史收藏 , 2.5 , None , 2022-12-21-17-40-17
+com.tianci.movieplatform, 打开历史收藏 , 1.75 , None , 2022-12-21-17-40-49
+com.tianci.movieplatform, 打开影视详情页 , 1.95 , None , 2022-12-21-17-41-26
+com.tianci.movieplatform, 打开影视详情页 , 1.64 , None , 2022-12-21-17-42-09
+com.tianci.appstore, 打开我的应用 , 1.96 , None , 2022-12-21-17-42-49
+com.tianci.appstore, 打开我的应用 , 3.28 , None , 2022-12-21-17-43-25
