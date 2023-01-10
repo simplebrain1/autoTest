@@ -77,7 +77,8 @@ def record_start(limit_time, video_name="default", camera_type="local"):
 
             if 0 < _limit_time <= 180:
                 print("record start {}".format(time.time()))
-                utils.shell("screenrecord --time-limit %s /data/local/tmp/video.mp4" % limit_time).wait()
+                # 某些设备可能无法以它们的本机显示分辨率进行录制。如果在录制屏幕时出现问题，请尝试使用较低的屏幕分辨率。比如rtk2885N平台
+                utils.shell("screenrecord --size 1280x720 --time-limit %s /data/local/tmp/video.mp4" % limit_time).wait()
                 flag = True
                 print("record end {} {}".format(time.time(), flag))
             else:

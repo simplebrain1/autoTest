@@ -19,22 +19,25 @@ class TestHomeColdBootTime(BaseTestCase):
         self.tag = '主页home冷启动'
         print("you are testing apk is :" + self.current_pkg + " ,apk_cls:" + self.current_cls + ",tag:" + self.tag)
         self.save_file_name = "TestHomeColdBootTime"
-        self.time_before_record = 0
-        self.enable_record = True
+        self.enable_record = False
         self.enable_auto_analyse = False
         self.home = HomePage(self.d)
 
+    def test_case_reset(self):
+        self.home.cold_boot_time_app_reset(self.home.target_pkg)
+
     def test_action(self):
         print("TestHomeColdBootTime is start")
-        self.d.sleep(1)
-        duration = self.home.cold_boot_time_home(self.home.home_myapp_click_view)
+        # self.d.sleep(1)
+        # # duration = self.home.cold_boot_time_home(self.home.home_myapp_click_view)
+        duration = self.home.cold_boot_time_app(self.home.home_myapp_click_view)
         print("start target Activity time {}".format(duration))
         file_uitls.write_to_csv(self.save_file_name, duration=str(duration), scan=self.tag)
         self.test_completion.set()
         print("TestHomeColdBootTime is end")
 
     def calculate_video_time(self, _result_get: ClassifierResult):
-        cost_time = round(stagesepx_utils.calculate(_result_get, "1", "3"), 2)  # 自动计算视频帧中的时间
+        cost_time = round(stagesepx_utils.calculate_common(_result_get, "1", "3"), 2)  # 自动计算视频帧中的时间
         file_uitls.write_to_csv(self.save_file_name, self.stagesepx_result_dir, duration=str(cost_time), scan=self.tag)
 
 

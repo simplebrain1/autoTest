@@ -4,6 +4,7 @@
 import time
 
 from autoTestScripts.python.pages.base_page import BasePage
+from autoTestScripts.python.scriptUtils import utils
 
 keyword = "right"
 
@@ -203,19 +204,19 @@ class HomePage(BasePage):
                 return round(activity_boot_time, 2)
         return -1
 
-    def cold_boot_time_home(self, view_show_id):
-        """首页home冷启动打开动作"""
-        print("start app {}".format(time.time()))
-        time_start_activity = time.time()
-        self.d.app_start(self.target_pkg, wait=True, stop=True)
-        self.d.wait_activity(self.target_cls)
-        view_show = self.d(text=view_show_id).wait(exists=True)
-        print(view_show)
-        if view_show:
-            print("end app {}".format(time.time()))
-            activity_boot_time = time.time() - time_start_activity
-            return round(activity_boot_time, 2)
-        return -1
+    # def cold_boot_time_home(self, view_show_id):
+    #     """首页home冷启动打开动作"""
+    #     print("start app {}".format(time.time()))
+    #     time_start_activity = time.time()
+    #     self.d.app_start(self.target_pkg, wait=True, stop=True)
+    #     self.d.wait_activity(self.target_cls)
+    #     view_show = self.d(text=view_show_id).wait(exists=True)
+    #     print(view_show)
+    #     if view_show:
+    #         print("end app {}".format(time.time()))
+    #         activity_boot_time = time.time() - time_start_activity
+    #         return round(activity_boot_time, 2)
+    #     return -1
 
     def cold_boot_time_home_view_click_reset(self, view_click_tab_id=None, ):
         """首页界面入口View点击打开动作前重置操作"""
@@ -274,25 +275,109 @@ class HomePage(BasePage):
             return round(activity_boot_time, 2)
         return -1
 
-    def cold_boot_time_soft_settings_reset(self):
-        """冷启动系统设置重置"""
-        self.d.app_clear("com.coocaa.os.softsettings")
+    def hot_boot_time_app_reset(self, pkg: str):
+        """应用热启动前操作重置"""
+        print("kill com.coocaa.simple.launcher")
+        self.d.app_stop("com.coocaa.simple.launcher")
         self.d.sleep(2)
         print("start app {}".format(time.time()))
+        utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg %s" % pkg).wait()
+        self.d.wait_activity("com.coocaa.simple.launcher.NewActivity")
+        show = self.d(resourceId="com.coocaa.simple.launcher:id/app").wait(exists=True)
+        print("end app reset {} {}".format(time.time(), show))
+        # 先切到其他应用再杀程序，避免在主页杀完导致主页被立即重启
+        # self.d.app_clear(pkg) # pm clear会导致一些应用进入的是服务协议界面
+        # print("kill " + pkg)
+        # self.d.app_stop(pkg)
+        # self.d.sleep(2)
 
-    def cold_boot_time_soft_settings(self):
-        # """冷启动系统设置"""
+    def cold_boot_time_app_reset(self, pkg: str):
+        """应用冷启动前操作重置"""
+        print("kill com.coocaa.simple.launcher")
+        self.d.app_stop("com.coocaa.simple.launcher")
+        self.d.sleep(2)
+        print("start app {}".format(time.time()))
+        utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg %s" % pkg).wait()
+        self.d.wait_activity("com.coocaa.simple.launcher.NewActivity")
+        show = self.d(resourceId="com.coocaa.simple.launcher:id/app").wait(exists=True)
+        print("end app reset {} {}".format(time.time(), show))
+        # 先切到其他应用再杀程序，避免在主页杀完导致主页被立即重启
+        # self.d.app_clear(pkg) # pm clear会导致一些应用进入的是服务协议界面
+        print("kill " + pkg)
+        self.d.app_stop(pkg)
+        self.d.sleep(2)
+
+    def open_target_app_page(self, target_pkg: str, target_cls: str, view_id_show: str):
+        """冷启动应用操作"""
         # self.d.app_clear("com.coocaa.os.softsettings")
         # self.d.sleep(2)
         # print("start app {}".format(time.time()))
-        time_start_activity = time.time()
-        self.d.app_start("com.coocaa.os.softsettings", wait=True)  # 启动应用
+        # self.d.app_start("com.coocaa.os.softsettings", wait=True)  # 启动应用
         # utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg com.coocaa.os.softsettings")
-        # # self.d.wait_activity()
+        # self.d.wait_activity("com.coocaa.simple.launcher.NewActivity")
         # utils.shell(
-        #     "sendevent /dev/input/event0 1 28 1 ;sendevent /dev/input/event0 0 0 0 ;sendevent /dev/input/event0 1 "
-        #     "28 0 ;sendevent /dev/input/event0 0 0 0").wait()
-        view_show = self.d(text="常规").wait(exists=True)  # 应用界面显示
+        #     "sendevent /dev/input/event1 1 28 1 ;sendevent /dev/input/event1 0 0 0 ;sendevent /dev/input/event1 1 "
+        #     "28 0 ;sendevent /dev/input/event1 0 0 0").wait()
+
+        # self.d(resourceId="com.coocaa.simple.launcher:id/app").click() #这种方式启动设置时没有显示选中
+        self.d.app_start(target_pkg, target_cls)
+        time_start_activity = time.time()
+        view_show = self.d(text=view_id_show).wait(exists=True)  # 应用界面显示
+        print("view_show:{}".format(view_show))
+        if view_show:
+            print("end app {}".format(time.time()))
+            activity_boot_time = time.time() - time_start_activity
+            return round(activity_boot_time, 2)
+        return -1
+
+    def open_target_app_page_by_action(self, target_action: str, view_id_show: str, **kwargs):
+        """冷启动应用操作"""
+        # self.d.app_clear("com.coocaa.os.softsettings")
+        # self.d.sleep(2)
+        # print("start app {}".format(time.time()))
+        # self.d.app_start("com.coocaa.os.softsettings", wait=True)  # 启动应用
+        # utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg com.coocaa.os.softsettings")
+        # self.d.wait_activity("com.coocaa.simple.launcher.NewActivity")
+        # utils.shell(
+        #     "sendevent /dev/input/event1 1 28 1 ;sendevent /dev/input/event1 0 0 0 ;sendevent /dev/input/event1 1 "
+        #     "28 0 ;sendevent /dev/input/event1 0 0 0").wait()
+
+        # self.d(resourceId="com.coocaa.simple.launcher:id/app").click() #这种方式启动设置时没有显示选中
+        extra_key = None
+        if kwargs.get("extra_key") is not None:
+            extra_key = kwargs.get("extra_key")
+        extra_string_value = None
+        if kwargs.get("extra_key") is not None:
+            extra_string_value = kwargs.get("extra_string_value")
+        if extra_key is not None and extra_string_value is not None:
+            self.d.shell("am start -a %s --es %s %s" % (target_action, extra_key, extra_string_value))
+        else:
+            self.d.shell("am start -a %s" % target_action)
+        time_start_activity = time.time()
+        view_show = self.d(text=view_id_show).wait(exists=True)  # 应用界面显示
+        print("view_show:{}".format(view_show))
+        if view_show:
+            print("end app {}".format(time.time()))
+            activity_boot_time = time.time() - time_start_activity
+            return round(activity_boot_time, 2)
+        return -1
+
+    def cold_boot_time_app(self, view_id_show: str):
+        """冷启动应用操作"""
+        # self.d.app_clear("com.coocaa.os.softsettings")
+        # self.d.sleep(2)
+        # print("start app {}".format(time.time()))
+        # self.d.app_start("com.coocaa.os.softsettings", wait=True)  # 启动应用
+        # utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg com.coocaa.os.softsettings")
+        # self.d.wait_activity("com.coocaa.simple.launcher.NewActivity")
+        # utils.shell(
+        #     "sendevent /dev/input/event1 1 28 1 ;sendevent /dev/input/event1 0 0 0 ;sendevent /dev/input/event1 1 "
+        #     "28 0 ;sendevent /dev/input/event1 0 0 0").wait()
+
+        # self.d(resourceId="com.coocaa.simple.launcher:id/app").click() #这种方式启动设置时没有显示选中
+        self.d.keyevent("KEYCODE_ENTER")
+        time_start_activity = time.time()
+        view_show = self.d(text=view_id_show).wait(exists=True)  # 应用界面显示
         print("view_show:{}".format(view_show))
         if view_show:
             print("end app {}".format(time.time()))

@@ -201,7 +201,7 @@ done
 
 
 
-currentDataTime=$(date '+%Y%m%d_%H%M%S')  #脚本运行开始时间
+
 
 matchParm $1  #帮助
 
@@ -211,7 +211,7 @@ USBPATH=$2  #USB路径
 #USB_SCREEN_PATH=$3  #缓存文件路径
 TOP_PACKAGENAME=$3 #测试的包名
 TYPE_COMMAND=$4  #是否执行dumpsys surfaceFling获取帧信息，默认通过gfxinfo拿
-
+currentDataTime=$5  #$(date '+%Y%m%d_%H%M%S')  #脚本运行开始时间
 
 
 
@@ -261,7 +261,7 @@ countNum=0
  echo "Flags,IntendedVsync,Vsync,OldestInputEvent,NewestInputEvent,HandleInputStart,AnimationStart,PerformTraversalsStart,DrawStart,SyncQueued,SyncStart,IssueDrawCommandsStart,SwapBuffers,FrameCompleted,DequeueBufferDuration,QueueBufferDuration,FrameDuration" >>tempFileName
 while [ $countNum -lt $countMax ]
 do
-  if [ -z "$TYPE_COMMAND" ]
+  if [ "0" = "$TYPE_COMMAND" ]
   then
 	  doOutputCurrentPkgFpsMethod1
 	else

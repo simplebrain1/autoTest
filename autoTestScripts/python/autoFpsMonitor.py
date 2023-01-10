@@ -10,6 +10,7 @@ import adbutils
 import threading
 # from threading import Lock, Thread
 # from autoTestScripts.python.scriptUtils.image_match_utils import ImageMatch
+from autoTestScripts.python.scriptUtils import sendkey_utils
 from scriptUtils import utils, file_uitls, screenrecord
 
 PATH = lambda p: os.path.abspath(p)
@@ -467,9 +468,25 @@ if __name__ == "__main__":
     #             "28 0 ;sendevent /dev/input/event0 0 0 0").wait()
     # print(utils.shell("getprop ro.product.model").stdout.read().decode())
     # print(d.device_info)
-    d.touch.down(161, 85)
-    time.sleep(1)
-    d.touch.up(161, 85)
+    # d.touch.down(161, 85)
+    # time.sleep(1)
+    # d.touch.up(161, 85)
+    # d.app_clear("com.coocaa.simple.launcher")
+    # pkg = "com.tianci.movieplatform"
+    # utils.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg %s" % pkg)
+    # sendkey_utils.send_keycode(28)
+    # d.press("enter")
+    # d(resourceId="com.coocaa.simple.launcher:id/app").click()
+    # path = PATH("{}/{}/".format(os.getcwd(), "localApks"))
+    # path_apk = PATH("{}/{}".format(path, "SimpleLauncher_Run_build_V3.0.0_202212211631_release.apk"))
+    # print(path_apk)
+    # print(os.path.exists(path_apk))
+    # if os.path.exists(path_apk):
+    #     d.app_install(path_apk)
+    # pkg = "com.tianci.movieplatform"
+    # d.app_start("com.coocaa.simple.launcher","com.coocaa.simple.launcher.NewActivity")
+    d.shell("am start -n com.coocaa.simple.launcher/.NewActivity --es pkg com.tianci.movieplatform")
+    # utils.shell(f"am start -n com.coocaa.simple.launcher/.NewActivity --es pkg %s" % pkg).wait()
     # time.sleep(2)
     # utils.shell("sendevent /dev/input/event0 1 115 0 ;sendevent /dev/input/event0 0 0 0").wait()
     # utils.shell("")

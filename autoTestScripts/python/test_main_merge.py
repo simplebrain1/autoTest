@@ -1,10 +1,11 @@
 # 批量执行自动化示例脚本。
-
+import os
 import time
 
 import uiautomator2 as u2
 
 from autoTestScripts.python.base_test import BaseTestCase
+from autoTestScripts.python.scriptUtils import utils
 from autoTestScripts.python.test_cold_boot_time_home import TestHomeColdBootTime
 from autoTestScripts.python.test_cold_boot_time_home_header_news import TestHomeHeaderNewsClickBootTime
 from autoTestScripts.python.test_cold_boot_time_home_history import TestHomeHistoryClickBootTime
@@ -19,6 +20,8 @@ from autoTestScripts.python.test_home_tab_switch import TestHomeTabSwitch
 from autoTestScripts.python.test_hot_boot_time_home import TestHomeHotBootTime
 from autoTestScripts.python.test_time_voice_show import TestVoiceTipShowTime
 
+PATH = lambda p: os.path.abspath(p)
+
 
 def test_single(test_cls: BaseTestCase, test_num=1):
     """单独测某一个案例"""
@@ -32,27 +35,39 @@ def test_single(test_cls: BaseTestCase, test_num=1):
     return ret
 
 
+def auto_install_app(apk_name): # 自动安装本地apk
+    path = PATH("{}/{}/".format(os.getcwd(), "localApks"))
+    path_apk = PATH("{}/{}".format(path, apk_name))
+    print(path_apk)
+    print(os.path.exists(path_apk))
+    if os.path.exists(path_apk):
+        d.app_install(path_apk)
+    print("auto_install_app end")
+
+
 # 批量运行自动化测试案例（以主页为例）
 if __name__ == '__main__':
     start_test = time.time()
     print("merge test start {}".format(start_test))
-    d = u2.connect()
-    count = 2  # 测试次数
-    test_single(TestHomeColdBootTime, test_num=count)
-    test_single(TestHomeHeaderNewsClickBootTime, test_num=count)
-    test_single(TestHomeHistoryClickBootTime, test_num=count)
-    test_single(TestHomeDetailClickBootTime, test_num=count)
-    test_single(TestHomeMyappClickBootTime, test_num=count)
-    test_single(TestHomeSearchClickBootTime, test_num=count)
+    local_apk_name = "SimpleLauncher.apk"
+    d = u2.connect(utils.get_serial_num())
+    # auto_install_app(local_apk_name)
+    count = 1  # 测试次数
+    # test_single(TestHomeColdBootTime, test_num=count)
+    # test_single(TestHomeHeaderNewsClickBootTime, test_num=count)
+    # test_single(TestHomeHistoryClickBootTime, test_num=count)
+    # test_single(TestHomeDetailClickBootTime, test_num=count)
+    # test_single(TestHomeMyappClickBootTime, test_num=count)
+    # test_single(TestHomeSearchClickBootTime, test_num=count)
     test_single(TestSoftSettingClickBootTime, test_num=count)
-    test_single(TestHomeTabSwitchTime, test_num=count)
-    test_single(TestHomeSearchContentResponseTime, test_num=count)
-    test_single(TestHomeHotBootTime, test_num=count)
-    test_single(TestVoiceTipShowTime, test_num=count)
+    # test_single(TestHomeTabSwitchTime, test_num=count)
+    # test_single(TestHomeSearchContentResponseTime, test_num=count)
+    # test_single(TestHomeHotBootTime, test_num=count)
+    # test_single(TestVoiceTipShowTime, test_num=count)
 
-    # # 主页帧率自动化数据采集
-    test_single(TestHomeContentSwitch, test_num=count)
-
-    # for i in range(1):
-    test_single(TestHomeTabSwitch, test_num=count)
-    print("merge test start {}".format(time.time() - start_test))
+    # # # 主页帧率自动化数据采集
+    # test_single(TestHomeContentSwitch, test_num=count)
+    #
+    # # for i in range(1):
+    # test_single(TestHomeTabSwitch, test_num=count)
+    # print("merge test start {}".format(time.time() - start_test))

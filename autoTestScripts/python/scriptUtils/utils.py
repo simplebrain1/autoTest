@@ -9,6 +9,10 @@ import subprocess
 import time
 import tkinter as tk
 from tkinter import ttk
+from typing import Union
+
+from uiautomator2 import Device
+import xml.etree.ElementTree as ET
 
 from autoTestScripts.python.scriptUtils import exception
 
@@ -102,6 +106,19 @@ class Window(object):
             self.device_name_list.append(self.device_name_dict.get(id))
 
 
+def get_serial_num():
+    global serial_num
+    if serial_num == "":
+        devices = get_device_list()
+        if len(devices) == 1:
+            serial_num = devices[0]
+        else:
+            root = tk.Tk()
+            window = Window(devices, root)
+            window.show_window()
+    return serial_num
+
+
 # adb命令
 def adb(args):
     global serial_num
@@ -129,7 +146,8 @@ def shell(args):
             root = tk.Tk()
             window = Window(devices, root)
             window.show_window()
-    cmd = "%s -s %s shell %s" % (command, serial_num, str(args))
+    # 给shell命令增加双引号，避免在Windows下面无法识别某些linux命令导致出错，uiautomator2自带adb工具无此问题
+    cmd = '%s -s %s shell "%s"' % (command, serial_num, str(args))
     return subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
@@ -170,9 +188,9 @@ def kill_process(pkg_name):
 def get_focused_package_and_activity():
     pattern = re.compile(r"[a-zA-Z0-9\.]+/.[a-zA-Z0-9\.]+")
     # tmp = shell("dumpsys activity | %s mFocusedActivity" %find_util).stdout.read()
-    tmp = shell("dumpsys activity | %s mResumedActivity" % find_util).stdout.read()
+    tmp = shell("dumpsys activity | grep mResumedActivity").stdout.read()
     tmp = tmp.decode()
-    print(tmp)
+    print("get_focused_package_and_activity命令执行结果:{}".format(tmp))
     name = ""
     names = pattern.findall(tmp)
     print("get_focused_package_and_activity:{}".format(names))
@@ -181,10 +199,52 @@ def get_focused_package_and_activity():
     try:
         name = names[0]
     except:
-        tmp = shell("dumpsys window w | %s \/ | %s name=" % (find_util, find_util)).stdout.read()
+        tmp = shell("dumpsys window w | grep / | grep name=").stdout.read()
         tmp = tmp.decode()
         name = pattern.findall(tmp)[0]
     return name
+
+
+def get_input_device_path(device_default_name: str = "IR"):
+    if device_default_name is None:
+        device_default_name = "IR"
+    device_path = ""
+    for x in range(15):
+        file = "/sys/class/input/event%d/device/name" % x
+        result = shell('if [ -f "%s" ];then cat "%s"; else echo "no"; fi;' % (file, file)).stdout.read().decode()
+        print("file %s,device_path:%s" % (file, result))
+        m = re.search(device_default_name, result, re.IGNORECASE)
+        if bool(m):
+            device_path = "/dev/input/event%d" % x
+            break
+
+    print("device_path:%s" % device_path)
+    return device_path
+
+
+# 方便电视按键监测
+def send_key_event(device_path: str, key: Union[int, str], long_press_flag: bool = False, press_time: float = 5):
+    """
+    press key via name or key code (linux not android). Supported key name includes:
+    home, left, right, up, down, enter, select
+    """
+    key_dict = {'enter': 28, 'home': 102, 'up': 103, "left": 105, 'right': 106, 'down': 108, 'select': 353}
+    if isinstance(key, int):
+        key_code = key
+    else:
+        key_code = key_dict[key]
+    print("send_key_event keycode: %d" % key_code)
+    cmd_down = 'sendevent %s 1 %d 1' % (device_path, key_code)
+    cmd2 = 'sendevent %s 0 0 0' % device_path
+    cmd_up = 'sendevent %s 1 %d 0' % (device_path, key_code)
+    if long_press_flag:
+        deadline = time.time() + press_time
+        shell(cmd_down + ' && ' + cmd2)
+        while time.time() <= deadline:
+            pass
+        shell(cmd_up + ' && ' + cmd2)
+    else:
+        shell(cmd_down + ' && ' + cmd2 + " && " + cmd_up + " && " + cmd2)
 
 
 # 获取当前应用的包名
@@ -195,6 +255,48 @@ def get_current_package_name():
 # 获取当前设备的activity
 def get_current_activity():
     return get_focused_package_and_activity().split("/")[-1]
+
+
+hierarchy_flag = False
+hierarchy_num = 0
+max_hierarchy = 0
+
+
+def walk_data(root_node):
+    global hierarchy_flag, hierarchy_num, max_hierarchy
+    print(root_node.tag, root_node.attrib)
+    if root_node.tag == "node":
+        if hierarchy_flag:
+            hierarchy_num += 1
+            max_hierarchy = max(max_hierarchy, hierarchy_num)
+        if root_node.attrib['resource-id'] == 'android:id/content':
+            hierarchy_flag = True
+
+    children_node = root_node.findall('node')
+    for child in children_node:
+        walk_data(child)
+
+    if root_node.tag == "node":
+        if hierarchy_flag:
+            hierarchy_num -= 1
+        if root_node.attrib['resource-id'] == 'android:id/content':
+            hierarchy_flag = False
+    return
+
+
+def get_view_tree_hierarchy(d: Device):
+    global hierarchy_flag, hierarchy_num, max_hierarchy
+    hierarchy_flag = False
+    hierarchy_num = 0
+    max_hierarchy = 0
+    print('get_view_tree_hierarchy')
+    xml = d.dump_hierarchy()
+    root = ET.fromstring(xml)
+    print('root_tag:', root.tag)
+    print(xml)
+    walk_data(root)
+    print("view_max_hierarchy: %d" % max_hierarchy)
+    return max_hierarchy
 
 
 # 时间戳

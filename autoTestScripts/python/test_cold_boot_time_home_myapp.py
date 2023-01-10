@@ -20,15 +20,16 @@ class TestHomeMyappClickBootTime(BaseTestCase):
         print("you are testing apk is :" + self.current_pkg + " ,apk_cls:" + self.current_cls + ",tag:" + self.tag)
         self.save_file_name = "TestHomeMyappClickBootTime"
         self.home = HomePage(self.d)
+        self.target_boot_pkg = "com.tianci.appstore"
+        self.target_show_view = self.home.home_myapp_show_view
         self.enable_record = True
 
     def test_case_reset(self):
-        self.home.cold_boot_time_home_view_click_reset()
+        self.home.cold_boot_time_app_reset(self.target_boot_pkg)
 
     def test_action(self):
         print("TestHomeMyappClickBootTime is start")
-        duration = self.home.cold_boot_time_home_view_click(self.home.home_myapp_click_view,
-                                                            self.home.home_myapp_show_view)
+        duration = self.home.cold_boot_time_app(self.target_show_view)
         print("start target Activity time {}".format(duration))
         file_uitls.write_to_csv(self.save_file_name, duration=str(duration), scan=self.tag)
         self.test_completion.set()

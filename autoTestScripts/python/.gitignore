@@ -1,0 +1,8 @@
+#不包含输出结果
+resultDatas/
+stagesepxResultDatas/
+video/
+picture/*
+shell/
+!shell/fps_info.sh
+!shell/fps_info_parse.sh
